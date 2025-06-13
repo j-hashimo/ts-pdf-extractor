@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int         @id @default(autoincrement())
+  email      String      @unique
+  password   String
+  pdfUploads PDFUpload[]
+  createdAt  DateTime    @default(now())
+}
+
+model PDFUpload {
+  id         Int                  @id @default(autoincrement())
+  user       User                 @relation(fields: [userId], references: [id])
+  userId     Int
+  filename   String
+  s3Url      String
+  highlights ExtractedHighlight[]
+  images     ExtractedImage[]
+  createdAt  DateTime             @default(now())
+}
+
+model ExtractedHighlight {
+  id          Int       @id @default(autoincrement())
+  pdfUpload   PDFUpload @relation(fields: [pdfUploadId], references: [id])
+  pdfUploadId Int
+  text        String
+}
+
+model ExtractedImage {
+  id          Int       @id @default(autoincrement())
+  pdfUpload   PDFUpload @relation(fields: [pdfUploadId], references: [id])
+  pdfUploadId Int
+  imageUrl    String
+}
