@@ -1,9 +1,9 @@
 import express from 'express';
+import { uploadMiddleware, uploadPdfHandler } from '../controllers/pdfController';
+import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.get('/test', (req, res) => {
-  res.send('PDF route working');
-});
+router.post('/upload', authenticateToken, uploadMiddleware, uploadPdfHandler);
 
 export default router;

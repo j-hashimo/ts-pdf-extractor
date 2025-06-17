@@ -13,6 +13,7 @@ model User {
   password   String
   pdfUploads PDFUpload[]
   createdAt  DateTime    @default(now())
+  Pdf        Pdf[]
 }
 
 model PDFUpload {
@@ -38,4 +39,14 @@ model ExtractedImage {
   pdfUpload   PDFUpload @relation(fields: [pdfUploadId], references: [id])
   pdfUploadId Int
   imageUrl    String
+}
+
+model Pdf {
+  id         Int      @id @default(autoincrement())
+  filename   String
+  highlights String[] // Text annotations
+  imagePaths String[] // S3 or local image paths
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  createdAt  DateTime @default(now())
 }
