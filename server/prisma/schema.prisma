@@ -11,32 +11,33 @@ model User {
   id         Int         @id @default(autoincrement())
   email      String      @unique
   password   String
-  pdfUploads PDFUpload[]
+  pdfUploads PdfUpload[]
   createdAt  DateTime    @default(now())
   Pdf        Pdf[]
 }
 
-model PDFUpload {
-  id         Int                  @id @default(autoincrement())
-  user       User                 @relation(fields: [userId], references: [id])
-  userId     Int
-  filename   String
-  s3Url      String
-  highlights ExtractedHighlight[]
-  images     ExtractedImage[]
-  createdAt  DateTime             @default(now())
+model PdfUpload {
+  id                 Int                  @id @default(autoincrement())
+  filename           String
+  highlights         String[]
+  images             Image[] // ⬅️ relation to image records
+  userId             Int
+  user               User                 @relation(fields: [userId], references: [id])
+  createdAt          DateTime             @default(now())
+  ExtractedHighlight ExtractedHighlight[]
+  ExtractedImage     ExtractedImage[]
 }
 
 model ExtractedHighlight {
   id          Int       @id @default(autoincrement())
-  pdfUpload   PDFUpload @relation(fields: [pdfUploadId], references: [id])
+  pdfUpload   PdfUpload @relation(fields: [pdfUploadId], references: [id])
   pdfUploadId Int
   text        String
 }
 
 model ExtractedImage {
   id          Int       @id @default(autoincrement())
-  pdfUpload   PDFUpload @relation(fields: [pdfUploadId], references: [id])
+  pdfUpload   PdfUpload @relation(fields: [pdfUploadId], references: [id])
   pdfUploadId Int
   imageUrl    String
 }
@@ -49,4 +50,11 @@ model Pdf {
   user       User     @relation(fields: [userId], references: [id])
   userId     Int
   createdAt  DateTime @default(now())
+}
+
+model Image {
+  id          Int       @id @default(autoincrement())
+  imageData   String // ⬅️ base64 string
+  pdfUpload   PdfUpload @relation(fields: [pdfUploadId], references: [id])
+  pdfUploadId Int
 }

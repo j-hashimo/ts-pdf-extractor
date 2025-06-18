@@ -1,0 +1,5 @@
+# extractor-python/requirements.txt
+fastapi
+uvicorn
+pillow
+pymupdf
