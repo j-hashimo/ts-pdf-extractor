@@ -1,193 +1,41 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
-import { useGetUploadsQuery, apiSlice, useDeletePdfMutation } from '../redux/api';
-import { jwtDecode } from 'jwt-decode';
-
+import { useState } from 'react';
+import { useLoginMutation, useRegisterMutation } from '../redux/api';
 import { useRouter } from 'next/navigation';
-import { useDispatch } from 'react-redux';
 
-interface Upload {
-  id: number;
-  filename: string;
-  highlights: string[];
-  images: { imageData: string }[];
-  userId: number;
-}
-
-type DecodedToken = {
-  email: string;
-  userId: number;
-  exp: number;
-};
-
-export default function PdfList() {
+export default function HomePage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [register] = useRegisterMutation();
+  const [login] = useLoginMutation();
   const router = useRouter();
-  const dispatch = useDispatch();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { data: uploads = [], error, refetch } = useGetUploadsQuery();
 
-  const [currentUser, setCurrentUser] = useState<DecodedToken | null>(null);
-
-  // ✅ Get user from token inside useEffect only (no SSR crash)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const decoded = jwtDecode<DecodedToken>(token);
-          setCurrentUser(decoded);
-        } catch {
-          localStorage.removeItem('token');
-          router.push('/');
-        }
-      } else {
-        router.push('/');
-      }
-    }
-  }, [router]);
-
-  useEffect(() => {
-    const handlePageShow = (event: PageTransitionEvent) => {
-      if (event.persisted && typeof window !== 'undefined') {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          window.location.reload();
-        }
-      }
-    };
-
-    window.addEventListener('pageshow', handlePageShow);
-    return () => window.removeEventListener('pageshow', handlePageShow);
-  }, []);
-
-  useEffect(() => {
-    refetch();
-  }, []);
-
-  useEffect(() => {
-    if (error && 'status' in error && error.status === 401) {
-      router.push('/');
-    }
-  }, [error, router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    dispatch(apiSlice.util.resetApiState());
-    router.replace('/');
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile) return alert('No file selected');
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append('pdf', selectedFile);
-
+  const handleLogin = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const res = await fetch(`${apiUrl}/pdf/upload`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Upload failed');
-
-      alert('Upload successful!');
-      await refetch();
-      setSelectedFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      const res = await login({ email, password }).unwrap();
+      localStorage.setItem('token', res.token);
+      router.push('/dashboard');
     } catch (err) {
-      alert('Upload failed');
-      console.error(err);
-    } finally {
-      setUploading(false);
+      alert('Login failed');
     }
   };
 
-  const handleViewExtractedData = (upload: Upload) => {
-    const highlightsHTML = upload.highlights.length
-      ? `<ul>${upload.highlights.map((hl) => `<li>${hl}</li>`).join('')}</ul>`
-      : '<p><i>No highlights found.</i></p>';
-
-    const imagesHTML = upload.images.length
-      ? upload.images.map((imgObj) =>
-          `<img src="data:image/png;base64,${imgObj.imageData}" width="200" style="margin: 10px;" />`
-        ).join('')
-      : '<p><i>No images found.</i></p>';
-
-    const html = `
-      <html>
-        <head><title>Extracted Data - ${upload.filename}</title></head>
-        <body style="font-family:sans-serif;">
-          <h2>Highlights</h2>
-          ${highlightsHTML}
-          <h2>Images</h2>
-          ${imagesHTML}
-        </body>
-      </html>
-    `;
-
-    const newTab = window.open('', '_blank');
-    newTab?.document.write(html);
-    newTab?.document.close();
-  };
-
-  const [deletePdf] = useDeletePdfMutation();
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this PDF?')) return;
-
+  const handleRegister = async () => {
     try {
-      await deletePdf(id).unwrap();
-      alert('Deleted!');
+      await register({ email, password }).unwrap();
+      alert('Registered successfully! You can now log in.');
     } catch (err) {
-      alert('Delete failed');
+      alert('Registration failed');
     }
   };
-
-  const filteredUploads = currentUser
-    ? uploads.filter((upload: Upload) => upload.userId === currentUser.userId)
-    : [];
 
   return (
-    <div style={{ padding: '2rem' }}>
-      {currentUser && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', alignItems: 'center' }}>
-          <span>👤 {currentUser.email}</span>
-          <button onClick={handleLogout}>Logout</button>
-        </div>
-      )}
-
-      <h2>Upload a new PDF</h2>
-      <input
-        type="file"
-        accept="application/pdf"
-        ref={fileInputRef}
-        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-      />
-      <button onClick={handleUpload} disabled={uploading}>
-        {uploading ? 'Uploading...' : 'Upload PDF'}
-      </button>
-
-      <h2>Uploaded PDFs</h2>
-      {filteredUploads.length === 0 ? (
-        <p>No PDFs uploaded yet.</p>
-      ) : (
-        <ul>
-          {filteredUploads.map((upload) => (
-            <li key={upload.id}>
-              <p><strong>{upload.filename}</strong></p>
-              <button onClick={() => handleViewExtractedData(upload)}>View Extracted Highlights & Images</button>
-              <button onClick={() => handleDelete(upload.id)}>Delete</button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <main style={{ padding: 40 }}>
+      <h1>Login or Register</h1>
+      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} /><br />
+      <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} /><br />
+      <button onClick={handleRegister}>Register</button>
+      <button onClick={handleLogin}>Login</button>
+    </main>
   );
 }
