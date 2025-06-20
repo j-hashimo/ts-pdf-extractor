@@ -10,7 +10,7 @@ interface Upload {
   id: number;
   filename: string;
   highlights: string[];
-  images: string[];
+  images: { imageData: string }[];
 }
 
 type DecodedToken = {
