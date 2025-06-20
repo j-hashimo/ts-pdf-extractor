@@ -27,7 +27,7 @@ export default function PdfList() {
   const [currentUser, setCurrentUser] = useState<DecodedToken | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: uploads = [], error, refetch } = useGetUploadsQuery();
+  const { data: uploads = [], error, refetch } = useGetUploadsQuery<Upload[]>();
   const [deletePdf] = useDeletePdfMutation();
 
   // ✅ Only decode token on client
