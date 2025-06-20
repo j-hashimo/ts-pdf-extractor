@@ -1,7 +1,7 @@
 'use client';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { Upload } from '../types';
-const BASE_URL = process.env.CLIENT_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 
 
