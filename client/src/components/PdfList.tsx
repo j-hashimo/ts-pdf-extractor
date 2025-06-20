@@ -99,7 +99,7 @@ export default function PdfList() {
 
     try {
       const clientURL = process.env.CLIENT_URL || 'localhost:5000';
-      const res = await fetch(`${clientUrl}/pdf/upload`, {
+      const res = await fetch(`${clientURL}/pdf/upload`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
