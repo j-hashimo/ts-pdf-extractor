@@ -98,7 +98,8 @@ export default function PdfList() {
   formData.append('pdf', selectedFile);
 
     try {
-      const res = await fetch('http://localhost:5000/pdf/upload', {
+      const clientURL = process.env.CLIENT_URL || 'localhost:5000';
+      const res = await fetch(`${clientUrl}`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,

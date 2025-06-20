@@ -32,7 +32,9 @@ export const uploadPdfHandler = async (req: Request, res: Response): Promise<voi
       filename: file.originalname,
     });
 
-    const pythonRes = await axios.post('http://localhost:8000/extract', formData, {
+    const pythonUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000';
+
+    const pythonRes = await axios.post(`${pythonUrl}/extract`, formData, {
       headers: formData.getHeaders(),
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
