@@ -3,6 +3,13 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const BASE_URL = process.env.CLIENT_URL;
 
+export interface Upload {
+  id: number;
+  filename: string;
+  highlights: string[];
+  images: { imageData: string }[];
+}
+
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
