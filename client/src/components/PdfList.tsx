@@ -27,8 +27,8 @@ export default function PdfList() {
   const [currentUser, setCurrentUser] = useState<DecodedToken | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: uploads = [], error, refetch } = useGetUploadsQuery<Upload[]>();
-  const [deletePdf] = useDeletePdfMutation();
+  const { data = [], error, refetch } = useGetUploadsQuery();
+const uploads: Upload[] = data;
 
   // ✅ Only decode token on client
   useEffect(() => {
@@ -151,10 +151,9 @@ export default function PdfList() {
     }
   };
 
-  const filteredUploads =
-    currentUser?.userId != null
-      ? uploads.filter((upload) => upload.userId === currentUser.userId)
-      : [];
+  const filteredUploads = currentUser
+  ? uploads.filter((upload) => upload.userId === currentUser.userId)
+  : [];
 
   return (
     <div style={{ padding: '2rem' }}>
