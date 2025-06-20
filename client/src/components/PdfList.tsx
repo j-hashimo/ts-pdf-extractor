@@ -5,13 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 
-interface Upload {
-  id: number;
-  filename: string;
-  highlights: string[];
-  images: { imageData: string }[];
-  userId: number;
-}
+import { Upload } from '../types';
 
 type DecodedToken = {
   email: string;
