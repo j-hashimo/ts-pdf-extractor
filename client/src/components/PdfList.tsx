@@ -22,7 +22,8 @@ export default function PdfList() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data = [], error, refetch } = useGetUploadsQuery();
-const uploads: Upload[] = data;
+  const uploads: Upload[] = data;
+  const [deletePdf] = useDeletePdfMutation();
 
   // ✅ Only decode token on client
   useEffect(() => {
